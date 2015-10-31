@@ -1,19 +1,57 @@
 var HEXAGRAM = HEXAGRAM || {};
 
+
+HEXAGRAM.Animation = function (config) {
+	this.config = config || {
+		interval: 100
+	};
+	this.callback_list = [];
+	this.timer = undefined;
+	this.status = "init";
+};
+
+HEXAGRAM.Animation.prototype.run = function () {
+	var that = this;
+	this.timer = setInterval(function () {
+		for (var i = 0; i < that.callback_list.length; ++ i) {
+			that.callback_list[i]();
+		}
+	}, that.config.interval);
+	this.status = "running";
+};
+
+HEXAGRAM.Animation.prototype.pause = function () {
+	this.status = "paused";
+};
+
+HEXAGRAM.Animation.prototype.clear = function () {
+	this.callback_list = [];
+	clearInterval(this.timer);
+	this.timer = undefined;
+	this.status = "stopped";
+};
+
+HEXAGRAM.Animation.prototype.add = function (callback) {
+	this.callback_list.push(callback);
+};
+
+HEXAGRAM.Animation.prototype.remove = function (callback) {
+	this.callback_list = _.without(this.callback_list, callback);
+};
+
+
 HEXAGRAM.MagicCircle = function (selector, config) {
 	this.selector = selector;
 	this.config = config || HEXAGRAM.MagicCircle.DefaultConfig;
-	//@todo
 	this.styles = HEXAGRAM.MagicCircle.DefaultConfig;
 	this.id = Math.floor(Math.random() * 10000000);
 	this.height = 0;
 	this.width = 0;
 	this.defs = {};
 	this.canvas = undefined;
-	var caster = undefined;
-	this.animator = undefined;
-	this.animationListeners = [];
-	this.allElements = [];
+	this.animation = new HEXAGRAM.Animation();
+	this.elements = [];
+	this.current = undefined;
 	this.currentRadius = 0;
 };
 
@@ -44,145 +82,13 @@ HEXAGRAM.MagicCircle.DefaultConfig = {
 
 HEXAGRAM.MagicCircle.prototype.cast = function (rad) {
 	var that = this;
-	var draw = this.draw;
-	if (!this.animator) this.animator = setInterval(function () {
-		that.animate(that);
-	}, 100);
-	if (!this.canvas) this.init();
-
-	this.caster = {
-		selector: that.selector,
-		last: null,
-		ring: function(strokeWidth, spaceBefore, spaceAfter) {
-			var circle = new HEXAGRAM.Circle(that.canvas, {
-				parent: that,
-				radius: that.currentRadius,
-				strokeWidth: strokeWidth || 1
-			});
-			if (spaceBefore) this.space(spaceBefore);
-			that.allElements.push(circle);
-			if (strokeWidth) that.currentRadius += strokeWidth;
-			this.last = circle;
-			if (spaceAfter) this.space(spaceAfter);
-			return this;
-		},
-		getTextFitSize: function (text) {
-			var errorMargin = 2;
-			var textSizeA = 10;
-			var runeRing = new HEXAGRAM.TextRing(that.canvas, {
-				parent: that,
-				radius: that.currentRadius,
-				text: text,
-				fontSize: textSizeA,
-				speed: 0,
-				reverse: "0",
-				leading: undefined
-			});
-			var length = runeRing.getLength();
-			var circumference = this.getCircumference();
-			var fitRatio = circumference / length;
-			var textSizeB = textSizeA * fitRatio;
-			runeRing.disperse();
-			return textSizeB;
-		},
-		getCircumference: function () {
-			return that.currentRadius * 2 * Math.PI;
-		},
-		target: function(element) {
-			this.last = element;
-			return this;
-		},
-		color: function(color) {
-			if (this.last.recolor) {
-				this.last.recolor(color);
-			} else {
-				console.warn("Cant recolor this element", this.last);
-			}
-			return this;
-		},
-		getLast: function() {
-			return this.last;
-		},
-		fill: function(color) {
-			if (this.last.fill) {
-				this.last.fill(color);
-			} else {
-				console.warn("Cant fill this element", this.last);
-			}
-			return this;
-		},
-		rotation: function(rotation) {
-			if (this.last.rotation) {
-				this.last.rotation(rotation);
-			} else {
-				console.warn("Cant rotate element", this.last);
-			}
-			return this;
-		},
-		circleRing: function(count, innerRadius, speed, reverse) {
-			var circleRing = new HEXAGRAM.CircleRing(that.canvas, {
-				parent: that,
-				height: that.height,
-				width: that.width,
-				radius: that.currentRadius + innerRadius,
-				count: count,
-				innerRadius: innerRadius,
-				speed: speed,
-				reverse: reverse
-			});
-			that.allElements.push(circleRing);
-			that.currentRadius += innerRadius * 2;
-			this.last = circleRing;
-			return this;
-		},
-		space: function(length) {
-			that.currentRadius += length;
-			return this;
-		},
-		backspace: function(length) {
-			that.currentRadius -= length;
-			return this;
-		},
-		text: function(my_height, text, speed, reverse,leading) {
-			if (my_height == "autofit") {
-				var circumference = this.getCircumference();
-				my_height = this.getTextFitSize(text);
-				leading = "0";
-			}
-			var padding = 2;
-			var text = new HEXAGRAM.TextRing(that.canvas, {
-				parent: that,
-				radius: that.currentRadius + padding,
-				text: text,
-				fontSize: my_height,
-				speed: speed || 1,
-				reverse: reverse,
-				leading: leading
-			});
-			that.allElements.push(text);
-			that.currentRadius += my_height;
-			this.last = text;
-			return this;
-		},
-		disperse: function() {
-			that.disperse();
-		},
-		on: function(event, listener) {
-			var target = this.last;
-			var returner = this;
-			if (this.last.on) {
-				this.last.on(event, function() {
-					returner.last = target;
-					listener(returner, target);
-					//1
-				});
-			} else {
-				console.warn("Can't attach a listener to this object");
-			}
-			return this;
-		}
-	};
-	return that.caster;
+	if (! this.animation || "running" != this.animation.status) {
+		this.animation.run();
+	}
+	if (! this.canvas) {
+		this.init();
+	}
+	return that;
 };
 
 HEXAGRAM.MagicCircle.prototype.init = function () {
@@ -239,39 +145,212 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 		.attr("in", "SourceGraphic");
 };
 
-HEXAGRAM.MagicCircle.prototype.animate = function (that) {
-	for (var i = 0; i < that.animationListeners.length; ++ i) {
-		that.animationListeners[i]();
+HEXAGRAM.MagicCircle.prototype.run = function () {
+};
+
+HEXAGRAM.MagicCircle.prototype.add = function (type, config) {
+	switch (type) {
+	case "Circle":
+		return this.addCircle(config);
+		break;
+	case "CircleRing":
+		return this.addCircleRing(config);
+		break;
+	case "Text":
+		return this.addText(config);
+		break;
 	}
 };
 
-HEXAGRAM.MagicCircle.prototype.onanimate = function(l) {
-	this.animationListeners.push(l);
-	return {
-		stop: function() {
-			this.animationListeners = _.without(this.animationListeners, l);
-		},
-		start: function() {
-			this.animationListeners.push(l);
-		}
-	};
+HEXAGRAM.MagicCircle.prototype.addCircle = function (config) {
+	var that = this;
+	var circle = new HEXAGRAM.Circle(that.canvas, {
+		parent: that,
+		radius: that.currentRadius,
+		strokeWidth: config.strokeWidth || 1
+	});
+	if (config.spaceBefore) {
+		this.space(config.spaceBefore);
+	}
+	that.elements.push(circle);
+	if (config.strokeWidth) {
+		that.currentRadius += config.strokeWidth;
+	}
+	this.current = circle;
+	if (config.spaceAfter) {
+		this.space(config.spaceAfter);
+	}
+	return this.caster;
 };
 
-HEXAGRAM.MagicCircle.prototype.disperse = function() {
+HEXAGRAM.MagicCircle.prototype.addCircleRing = function (config) {
 	var that = this;
-	_.each(that.allElements, function (element) {
+	var circleRing = new HEXAGRAM.CircleRing(that.canvas, {
+		parent: that,
+		height: that.height,
+		width: that.width,
+		radius: that.currentRadius + config.innerRadius,
+		count: config.count,
+		innerRadius: config.innerRadius,
+		speed: config.speed,
+		reverse: config.reverse
+	});
+	that.elements.push(circleRing);
+	that.currentRadius += config.innerRadius * 2;
+	this.current = circleRing;
+	return this.caster;
+};
+
+HEXAGRAM.MagicCircle.prototype.addText = function (config) {
+	var that = this;
+	if (config.my_height == "autofit") {
+		var circumference = that.currentRadius * 2 * Math.PI;
+		config.my_height = this.getTextFitSize(config.text);
+		config.leading = "0";
+	}
+	var padding = 2;
+	var text = new HEXAGRAM.TextRing(that.canvas, {
+		parent: that,
+		radius: that.currentRadius + padding,
+		text: config.text,
+		fontSize: config.my_height,
+		speed: config.speed || 1,
+		reverse: config.reverse,
+		leading: config.leading
+	});
+	that.elements.push(text);
+	that.currentRadius += config.my_height;
+	this.current = text;
+	return this.caster;
+};
+
+HEXAGRAM.MagicCircle.prototype.getTextFitSize = function (text) {
+	var that = this;
+	var errorMargin = 2;
+	var textSizeA = 10;
+	var runeRing = new HEXAGRAM.TextRing(that.canvas, {
+		parent: that,
+		radius: that.currentRadius,
+		text: text,
+		fontSize: textSizeA,
+		speed: 0,
+		reverse: "0",
+		leading: undefined
+	});
+	var length = runeRing.getLength();
+	var circumference = that.currentRadius * 2 * Math.PI;
+	var fitRatio = circumference / length;
+	var textSizeB = textSizeA * fitRatio;
+	runeRing.disperse();
+	return textSizeB;
+};
+
+HEXAGRAM.MagicCircle.prototype.target = function (element) {
+	this.current = element;
+	return this.current;
+};
+
+HEXAGRAM.MagicCircle.prototype.getLast = function () {
+	return this.current;
+};
+
+HEXAGRAM.MagicCircle.prototype.color = function (color) {
+	if (this.current.recolor) {
+		this.current.recolor(color);
+	} else {
+		console.warn("Cant recolor this element", this.current);
+	}
+	return this;
+};
+
+HEXAGRAM.MagicCircle.prototype.fill = function (color) {
+	if (this.current.fill) {
+		this.current.fill(color);
+	} else {
+		console.warn("Cant fill this element", this.current);
+	}
+	return this;
+};
+
+HEXAGRAM.MagicCircle.prototype.rotation = function (rotation) {
+	if (this.current.rotation) {
+		this.current.rotation(rotation);
+	} else {
+		console.warn("Cant rotate element", this.current);
+	}
+	return this;
+};
+
+HEXAGRAM.MagicCircle.prototype.on = function(event, listener) {
+	var target = this.current;
+	var returner = this;
+	if (this.current.on) {
+		this.current.on(event, function() {
+			returner.current = target;
+			listener(returner, target);
+		});
+	} else {
+		console.warn("Can't attach a listener to this object");
+	}
+	return this;
+},
+
+HEXAGRAM.MagicCircle.prototype.space = function(length) {
+	this.currentRadius += length;
+	return this;
+};
+
+HEXAGRAM.MagicCircle.prototype.backspace = function(length) {
+	this.currentRadius -= length;
+	return this;
+};
+
+HEXAGRAM.MagicCircle.prototype.circleRing = function(count, innerRadius, speed, reverse) {
+	this.add("CircleRing", {
+		count: count,
+		innerRadius: innerRadius,
+		speed: speed,
+		reverse: reverse
+	});
+	return this;
+},
+
+HEXAGRAM.MagicCircle.prototype.ring = function(strokeWidth, spaceBefore, spaceAfter) {
+	this.add("Circle", {
+		strokeWidth: strokeWidth,
+		spaceBefore: spaceBefore,
+		spaceAfter: spaceAfter
+	});
+	return this;
+},
+
+HEXAGRAM.MagicCircle.prototype.text = function(my_height, text, speed, reverse,leading) {
+	this.add("Text", {
+		my_height: my_height,
+		text: text,
+		speed: speed,
+		reverse: reverse,
+		leading: leading
+	});
+	return this;
+}
+
+HEXAGRAM.MagicCircle.prototype.disperse = function () {
+	var that = this;
+	_.each(that.elements, function (element) {
 		element.disperse()
 		.then(function (el) {
 			el.remove();
 		});
 	});
-	that.allElements = [];
-	that.animationListeners = [];
-	clearInterval(that.animator);
-	that.animator = null;
+	that.animation.clear();
+	that.elements = [];
 	that.currentRadius = 0;
 	that.caster = null;
 };
+
+var MagicCircle = HEXAGRAM.MagicCircle;
+
 
 HEXAGRAM.Circle = function (canvas, config) {
 	var parent = config.parent;
@@ -324,6 +403,7 @@ HEXAGRAM.Circle = function (canvas, config) {
 	};
 };
 
+
 HEXAGRAM.CircleRing = function (canvas, config) {
 	var RAD = Math.PI * 2;
 	var offset = 0;
@@ -352,14 +432,15 @@ HEXAGRAM.CircleRing = function (canvas, config) {
 		circles.push(circle);
 	}
 
-	var animation = config.parent.onanimate(function () {
+	var animation = function () {
 		offset = (config.reverse) ? offset - 1 * (config.speed || config.parent.styles.animation.animationSpeed) : offset + 1 * (config.speed || config.parent.styles.animation.animationSpeed);
 		ring
 			.transition()
 			.ease("linear")
 			.duration(100)
 			.attr("transform", "rotate(" + offset + ", " + config.width / 2 + ", " + config.height / 2 + ")");
-	});
+	};
+	config.parent.animation.add(animation);
 
 	return {
 		ref: ring,
@@ -377,7 +458,7 @@ HEXAGRAM.CircleRing = function (canvas, config) {
 		},
 		disperse: function() {
 			var deferred = Q.defer();
-			animation.stop();
+			config.parent.animation.remove(animation);
 			_.each(circles, function(circle) {
 				circle.transition()
 					.duration(500)
@@ -393,54 +474,49 @@ HEXAGRAM.CircleRing = function (canvas, config) {
 	};
 };
 
+
 HEXAGRAM.TextRing = function (canvas, config) {
 	var parent = config.parent;
-	var radius = config.radius;
-	var text = config.text;
-	var fontSize = config.fontSize;
-	var speed = config.speed;
-	var reverse = config.reverse;
-	var leading = config.leading;
-
 	var rotation = 0;
 	var runeId = parent.id + Math.floor(Math.random() * 1000000);
 	var r = 60;
-	var size = radius;
+	var size = config.radius;
 	var centerX = -size;
 	var centerY = 0;
 	var path = parent.defs.append("path");
 	path
 		.attr("id", "s3" + runeId)
 		.attr("d", "m "+centerX+", "+centerY+" a -"+size+",-"+size+" 1 1,1 "+size*2+",0 a -"+size+",-"+size+" 1 1,1 -"+size*2+",0");
-	var timer = parent.onanimate(function() {
-		rotation = (reverse) ? rotation - 1 * (speed || parent.styles.animation.animationSpeed) : rotation + 1 * (speed || parent.styles.animation.animationSpeed);
+	var timer = function() {
+		rotation = (config.reverse) ? rotation - 1 * (config.speed || parent.styles.animation.animationSpeed) : rotation + 1 * (config.speed || parent.styles.animation.animationSpeed);
 		ring
 			.transition()
 			.duration(100)
 			.ease("linear")
 			.attr("transform", "translate(" + parent.width / 2 + "," + parent.height / 2 + ")  rotate(" + rotation + ")");
-	});
+	};
+	parent.animation.add(timer);
 	var ring = canvas.append("g")
 		.attr("id", "ring" + runeId)
 		.attr('transform', "translate(" + parent.width / 2 + "," + parent.height / 2 + ")  rotate(" + rotation + ")")
 		.style("pointer-events", "none");
 	var testTextLengthNode = ring.append("text")
-		.style("font-size", fontSize + "px")
+		.style("font-size", config.fontSize + "px")
 		.attr("xlink:href", "#s3" + runeId)
 		.style("text-transform", parent.styles.type.typecase)
 		.style("filter", "url(#drop-shadow" + parent.id + ")")
-		.text(text);
+		.text(config.text);
 	var length = ring.select('text').node().getComputedTextLength();
 	testTextLengthNode.remove();
 	var text = ring.append("text")
 		.append("textPath")
-		.style("font-size", fontSize + "px")
+		.style("font-size", config.fontSize + "px")
 		.attr("xlink:href", "#s3" + runeId)
-		.style("letter-spacing", leading || parent.styles.type.leading)
+		.style("letter-spacing", config.leading || parent.styles.type.leading)
 		.style("text-transform", parent.styles.type.typecase)
 		.style("pointer-events", "none")
 		.style("filter", "url(#drop-shadow" + parent.id + ")")
-		.text(text)
+		.text(config.text)
 		.attr("fill", parent.styles.colors.text)
 		.attr("opacity", 0);
 	var transition = text.transition()
@@ -453,13 +529,13 @@ HEXAGRAM.TextRing = function (canvas, config) {
 	return {
 		ref: ring,
 		rotation: function(rot) {
-			timer.stop();
+			config.parent.animation.remove(timer);
 			ring
 				.transition()
 				.attr("transform", "translate(" + parent.width / 2 + "," + parent.height / 2 + ")  rotate(" + parseFloat(rot + 50) + ")");
 		},
 		animate: function() {
-			timer.start();
+			config.parent.animation.add(timer);
 		},
 		getLength: function() {
 			return length;
@@ -483,5 +559,3 @@ HEXAGRAM.TextRing = function (canvas, config) {
 		}
 	};
 };
-
-var MagicCircle = HEXAGRAM.MagicCircle;
