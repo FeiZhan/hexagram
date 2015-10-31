@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title="Magic Circles"></title>
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/styles/github.min.css">
+		<link rel="stylesheet" type="text/css" href="../lib/MagicCircles/examples/styles/circles.css">
+	</head>
+
+	<body>
+		<artboard id='headerCircle'>
+		</artboard>
+	</body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/highlight.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.js"></script>
+
+	<script src='../lib/MagicCircles/magic.circles.js'></script>
+	<script src='../src/hexagram.js'></script>
+	<script>
+    var intro = new HEXAGRAM.MagicCircle("#headerCircle");
+    intro.styles.colors = {
+      ring: "#151d3b",
+      text: "#1a1640",
+      smallRing: "#291744",
+    };
+
+    var caster = intro.cast()
+        .circleRing(12,16)
+        .circleRing(30,40);
+
+	</script>
+</html>
