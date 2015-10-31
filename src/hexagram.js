@@ -28,7 +28,13 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 			selector: selector,
 			last: null,
 			ring: function(strokeWidth, spaceBefore, spaceAfter) {
-				var circle = draw.circle(magicCircle.currentRadius, strokeWidth || 1);
+				var circle = new HEXAGRAM.Circle(svg, {
+					radius: magicCircle.currentRadius,
+					strokeWidth: strokeWidth || 1,
+					height: height,
+					width:width ,
+					magicCircle: magicCircle
+				});
 				if (spaceBefore) this.space(spaceBefore);
 				magicCircle.allElements.push(circle);
 				if (strokeWidth) magicCircle.currentRadius += strokeWidth;
@@ -39,7 +45,18 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 			getTextFitSize: function (text) {
 				var errorMargin = 2;
 				var textSizeA = 10;
-				var runeRing = magicCircle.draw.runeRing(magicCircle.currentRadius, text, textSizeA, 0, "0");
+				var runeRing = new HEXAGRAM.RuneRing(svg, {
+					defs: defs,
+					height: height,
+					width: width,
+					magicCircle: magicCircle,
+					radius: magicCircle.currentRadius,
+					text: text,
+					fontSize: textSizeA,
+					speed: 0,
+					reverse: "0",
+					leading: undefined
+				});
 				var length = runeRing.getLength();
 				var circumference = this.getCircumference();
 				var fitRatio = circumference / length;
@@ -82,7 +99,7 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 				return this;
 			},
 			circleRing: function(count, innerRadius, speed, reverse) {
-				var circle_ring = circleRing(svg, {
+				var circleRing = new HEXAGRAM.CircleRing(svg, {
 					parent: magicCircle,
 					height: height,
 					width: width,
@@ -92,9 +109,9 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 					speed: speed,
 					reverse: reverse
 				});
-				magicCircle.allElements.push(circle_ring);
+				magicCircle.allElements.push(circleRing);
 				magicCircle.currentRadius += innerRadius * 2;
-				this.last = circle_ring;
+				this.last = circleRing;
 				return this;
 			},
 			space: function(length) {
@@ -105,16 +122,27 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 				magicCircle.currentRadius -= length;
 				return this;
 			},
-			text: function(height, text, speed, reverse,leading) {
-				if (height == "autofit") {
+			text: function(my_height, text, speed, reverse,leading) {
+				if (my_height == "autofit") {
 					var circumference = this.getCircumference();
-					height = this.getTextFitSize(text);
+					my_height = this.getTextFitSize(text);
 					leading = "0";
 				}
 				var padding = 2;
-				var text = draw.runeRing(magicCircle.currentRadius + padding, text, height, speed || 1, reverse, leading);
+				var text = new HEXAGRAM.RuneRing(svg, {
+					defs: defs,
+					height: height,
+					width: width,
+					magicCircle: magicCircle,
+					radius: magicCircle.currentRadius + padding,
+					text: text,
+					fontSize: my_height,
+					speed: speed || 1,
+					reverse: reverse,
+					leading: leading
+				});
 				magicCircle.allElements.push(text);
-				magicCircle.currentRadius += height;
+				magicCircle.currentRadius += my_height;
 				this.last = text;
 				return this;
 			},
@@ -128,14 +156,14 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 					this.last.on(event, function() {
 						returner.last = target;
 						listener(returner, target);
-						1
-					})
+						//1
+					});
 				} else {
 					console.warn("Can't attach a listener to this object");
 				}
 				return this;
 			}
-		}
+		};
 		return magicCircle.caster;
 	};
 
@@ -193,7 +221,34 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 			.attr("in", "SourceGraphic");
 	};
 
+  this.animate = function() {
+    for (var i = 0; i < magicCircle.animationListeners.length; i++) {
+      magicCircle.animationListeners[i]();
+    }
+  };
 
+	this.disperse = function() {
+
+    magicCircle.active = false;
+
+    var elementCount = magicCircle.allElements.length;
+    var elementsDispersed = 0;
+    _.each(magicCircle.allElements, function(element) {
+      element.disperse()
+        .then(function(el) {
+          elementsDispersed++;
+          el.remove();
+        });
+    });
+
+    magicCircle.allElements = [];
+    magicCircle.animationListeners = [];
+    clearInterval(animator);
+    animator = null;
+    magicCircle.currentRadius = 0;
+
+    magicCircle.caster = null;
+  };
 };
 HEXAGRAM.MagicCircle.default_config = {
 	colors: {
@@ -233,7 +288,7 @@ HEXAGRAM.MagicCircle.prototype.onanimate = function(l) {
 	};
 };
 
-var circleRing = function (svg, config) {
+HEXAGRAM.CircleRing = function (svg, config) {
 	var RAD = Math.PI * 2;
 	var offset = 0;
 	var ring = svg.append("g")
@@ -249,10 +304,10 @@ var circleRing = function (svg, config) {
 			.attr("cy", config.height / 2 + (Math.sin((offset + completeness) * RAD)) * q * config.radius)
 			.attr("stroke", config.parent.styles.colors.smallRing)
 			.attr("fill", "none")
-			.attr("stroke-width", 0.5 + config.count / 15);
+			.attr("stroke-width", 0.5 + config.innerRadius / 15);
 		var transition = circle.transition()
 			.duration(config.parent.styles.animation.inSpeed)
-			.attr("r", config.count)
+			.attr("r", config.innerRadius)
 			.each("end", function() {
 			  circle.t = undefined;
 			});
@@ -291,7 +346,7 @@ var circleRing = function (svg, config) {
 					.duration(500)
 					.attr("r", 0);
 			});
-			var transition = ring.transition()
+			var transition = ring.transition();
 			transition
 				.duration(config.parent.styles.animation.inSpeed)
 				.attr("opacity", 0)
@@ -301,3 +356,155 @@ var circleRing = function (svg, config) {
 	};
 };
 
+HEXAGRAM.Circle = function(svg, config) {
+	var radius = config.radius;
+	var strokeWidth = config.strokeWidth;
+	var height = config.height;
+	var width = config.width;
+	var magicCircle = config.magicCircle;
+
+	var circle = svg.append("circle");
+	circle
+		.attr("r", 0)
+		.attr("cx", width / 2)
+		.attr("cy", height / 2)
+		.attr("opacity", 1)
+		.attr("stroke", magicCircle.styles.colors.ring)
+		.attr("fill", "none")
+		.style("filter", "url(#drop-shadow" + magicCircle.id + ")")
+		.attr("stroke-width", strokeWidth || radius / 100);
+	if (strokeWidth > 5) {
+		circle
+			.style("filter", "none");
+	}
+	var transition = circle.transition()
+		.duration(magicCircle.styles.animation.inSpeed)
+		.attr("r", radius + strokeWidth / 2)
+		.each("end", function() {
+			transition = null;
+		});
+	return {
+		ref: circle,
+		recolor: function(newColor) {
+			transition = transition || circle.transition();
+			if (newColor == "useNone") {
+				transition
+					.attr("stroke", "rgba(0,0,0,0)")
+					.attr("fill-opacity", "0.0");
+				return;
+			}
+			transition
+				.attr("stroke", newColor);
+		},
+		on: function(event, listener) {
+			circle.on(event, listener);
+		},
+		disperse: function() {
+			var deferred = Q.defer();
+			circle
+				.transition()
+				.duration(magicCircle.styles.animation.inSpeed)
+				.attr("opacity", 0)
+				.attr("r", 0)
+				.each("end", deferred.resolve, circle);
+			return deferred.promise;
+		}
+	};
+};
+
+HEXAGRAM.RuneRing = function(svg, config) {
+	var defs = config.defs;
+	var height = config.height;
+	var width = config.width;
+	var magicCircle = config.magicCircle;
+	var radius = config.radius;
+	var text = config.text;
+	var fontSize = config.fontSize;
+	var speed = config.speed;
+	var reverse = config.reverse;
+	var leading = config.leading;
+
+	var rotation = 0;
+	var runeId = magicCircle.id + Math.floor(Math.random() * 1000000);
+	var r = 60;
+	var size = radius;
+	var centerX = -size;
+	var centerY = 0;
+	var path = defs.append("path");
+	path
+		.attr("id", "s3" + runeId)
+		.attr("d", "m "+centerX+", "+centerY+" a -"+size+",-"+size+" 1 1,1 "+size*2+",0 a -"+size+",-"+size+" 1 1,1 -"+size*2+",0");
+	var timer = magicCircle.onanimate(function() {
+		rotation = (reverse) ? rotation - 1 * (speed || magicCircle.styles.animation.animationSpeed) : rotation + 1 * (speed || magicCircle.styles.animation.animationSpeed);
+		ring
+			.transition()
+			.duration(100)
+			.ease("linear")
+			.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")  rotate(" + rotation + ")");
+	});
+
+	var ring = svg.append("g")
+		.attr("id", "ring" + runeId)
+		.attr('transform', "translate(" + width / 2 + "," + height / 2 + ")  rotate(" + rotation + ")")
+		.style("pointer-events", "none");
+	var testTextLengthNode = ring.append("text")
+		.style("font-size", fontSize + "px")
+		.attr("xlink:href", "#s3" + runeId)
+		.style("text-transform", magicCircle.styles.type.typecase)
+		.style("filter", "url(#drop-shadow" + magicCircle.id + ")")
+		.text(text);
+	var length = ring.select('text').node().getComputedTextLength();
+	testTextLengthNode.remove();
+	var text = ring.append("text")
+		.append("textPath")
+		.style("font-size", fontSize + "px")
+		.attr("xlink:href", "#s3" + runeId)
+		.style("letter-spacing", leading || magicCircle.styles.type.leading)
+		.style("text-transform", magicCircle.styles.type.typecase)
+		.style("pointer-events", "none")
+		.style("filter", "url(#drop-shadow" + magicCircle.id + ")")
+		.text(text)
+		.attr("fill", magicCircle.styles.colors.text)
+		.attr("opacity", 0);
+	var transition = text.transition()
+		.duration(magicCircle.styles.animation.inSpeed)
+		.ease("linear")
+		.attr("opacity", 1)
+		.each("end", function() {
+			transition = null;
+		});
+	return {
+		ref: ring,
+		rotation: function(rot) {
+			timer.stop();
+			ring
+				.transition()
+				.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")  rotate(" + parseFloat(rot + 50) + ")");
+		},
+		animate: function() {
+			timer.start();
+		},
+		getLength: function() {
+			return length;
+		},
+		recolor: function(newColor) {
+			transition = transition || text.transition();
+			transition
+				.attr("fill", newColor);
+		},
+		disperse: function() {
+			var deferred = Q.defer();
+			transition = text.transition();
+			transition
+				.attr("opacity", 0)
+				.each("end", deferred.resolve, text);
+			setTimeout(function() {
+				ring.remove();
+				text.remove();
+			}, 500);
+			return deferred.promise;
+		}
+	};
+};
+
+var MagicCircle = HEXAGRAM.MagicCircle;
