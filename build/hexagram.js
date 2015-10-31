@@ -1,6 +1,5 @@
 var HEXAGRAM = HEXAGRAM || {};
 
-
 HEXAGRAM.Animation = function (config) {
 	this.config = config || {
 		interval: 100
@@ -36,9 +35,130 @@ HEXAGRAM.Animation.prototype.add = function (callback) {
 };
 
 HEXAGRAM.Animation.prototype.remove = function (callback) {
-	this.callback_list = _.without(this.callback_list, callback);
+	this.callback_list.splice(this.callback_list.indexOf(callback), 1);
 };
+;var HEXAGRAM = HEXAGRAM || {};
 
+HEXAGRAM.Circle = function (canvas, config) {
+	var parent = config.parent;
+	var circle = canvas.append("circle");
+	circle
+		.attr("r", 0)
+		.attr("cx", parent.width / 2)
+		.attr("cy", parent.height / 2)
+		.attr("opacity", 1)
+		.attr("stroke", parent.styles.colors.ring)
+		.attr("fill", "none")
+		.style("filter", "url(#drop-shadow" + parent.id + ")")
+		.attr("stroke-width", config.strokeWidth || config.radius / 100);
+	if (config.strokeWidth > 5) {
+		circle
+			.style("filter", "none");
+	}
+	var transition = circle.transition()
+		.duration(parent.styles.animation.inSpeed)
+		.attr("r", config.radius + config.strokeWidth / 2)
+		.each("end", function() {
+			transition = null;
+		});
+	return {
+		ref: circle,
+		recolor: function(newColor) {
+			transition = transition || circle.transition();
+			if (newColor == "useNone") {
+				transition
+					.attr("stroke", "rgba(0,0,0,0)")
+					.attr("fill-opacity", "0.0");
+				return;
+			}
+			transition
+				.attr("stroke", newColor);
+		},
+		on: function(event, listener) {
+			circle.on(event, listener);
+		},
+		disperse: function() {
+			var deferred = Q.defer();
+			circle
+				.transition()
+				.duration(parent.styles.animation.inSpeed)
+				.attr("opacity", 0)
+				.attr("r", 0)
+				.each("end", deferred.resolve, circle);
+			return deferred.promise;
+		}
+	};
+};;var HEXAGRAM = HEXAGRAM || {};
+
+HEXAGRAM.CircleRing = function (canvas, config) {
+	var RAD = Math.PI * 2;
+	var offset = 0;
+	var ring = canvas
+		.append("g")
+		.attr("opacity", 1);
+	var circles = [];
+	for (var i = 0; i < config.count; ++ i) {
+		var completeness = i / config.count;
+		var q = 1;
+		var circle = ring.append("circle");
+		circle
+			.attr("r", 0)
+			.attr("cx", config.width / 2 + (Math.cos((offset + completeness) * RAD)) * q * config.radius)
+			.attr("cy", config.height / 2 + (Math.sin((offset + completeness) * RAD)) * q * config.radius)
+			.attr("stroke", config.parent.styles.colors.smallRing)
+			.attr("fill", "none")
+			.attr("stroke-width", 0.5 + config.innerRadius / 15);
+		var transition = circle.transition()
+			.duration(config.parent.styles.animation.inSpeed)
+			.attr("r", config.innerRadius)
+			.each("end", function() {
+			  circle.t = undefined;
+			});
+		circle.t = transition;
+		circles.push(circle);
+	}
+
+	var animation = function () {
+		offset = (config.reverse) ? offset - 1 * (config.speed || config.parent.styles.animation.animationSpeed) : offset + 1 * (config.speed || config.parent.styles.animation.animationSpeed);
+		ring
+			.transition()
+			.ease("linear")
+			.duration(100)
+			.attr("transform", "rotate(" + offset + ", " + config.width / 2 + ", " + config.height / 2 + ")");
+	};
+	config.parent.animation.add(animation);
+
+	return {
+		ref: ring,
+		recolor: function(newColor) {
+			$.each(circles, function(i, circle) {
+				circle
+					.attr("stroke", newColor);
+			});
+		},
+		fill: function(newColor) {
+			$.each(circles, function(i, circle) {
+				circle
+					.attr("fill", newColor);
+			});
+		},
+		disperse: function() {
+			var deferred = Q.defer();
+			config.parent.animation.remove(animation);
+			$.each(circles, function(i, circle) {
+				circle.transition()
+					.duration(500)
+					.attr("r", 0);
+			});
+			var transition = ring.transition();
+			transition
+				.duration(config.parent.styles.animation.inSpeed)
+				.attr("opacity", 0)
+				.each("end", deferred.resolve, ring);
+			return deferred.promise;
+		}
+	};
+};;var HEXAGRAM = HEXAGRAM || {};
 
 HEXAGRAM.MagicCircle = function (selector, config) {
 	this.selector = selector;
@@ -337,7 +457,7 @@ HEXAGRAM.MagicCircle.prototype.text = function(my_height, text, speed, reverse,l
 
 HEXAGRAM.MagicCircle.prototype.disperse = function () {
 	var that = this;
-	_.each(that.elements, function (element) {
+	$.each(that.elements, function(i, element) {
 		element.disperse()
 		.then(function (el) {
 			el.remove();
@@ -349,131 +469,7 @@ HEXAGRAM.MagicCircle.prototype.disperse = function () {
 	that.caster = null;
 };
 
-var MagicCircle = HEXAGRAM.MagicCircle;
-
-
-HEXAGRAM.Circle = function (canvas, config) {
-	var parent = config.parent;
-	var circle = canvas.append("circle");
-	circle
-		.attr("r", 0)
-		.attr("cx", parent.width / 2)
-		.attr("cy", parent.height / 2)
-		.attr("opacity", 1)
-		.attr("stroke", parent.styles.colors.ring)
-		.attr("fill", "none")
-		.style("filter", "url(#drop-shadow" + parent.id + ")")
-		.attr("stroke-width", config.strokeWidth || config.radius / 100);
-	if (config.strokeWidth > 5) {
-		circle
-			.style("filter", "none");
-	}
-	var transition = circle.transition()
-		.duration(parent.styles.animation.inSpeed)
-		.attr("r", config.radius + config.strokeWidth / 2)
-		.each("end", function() {
-			transition = null;
-		});
-	return {
-		ref: circle,
-		recolor: function(newColor) {
-			transition = transition || circle.transition();
-			if (newColor == "useNone") {
-				transition
-					.attr("stroke", "rgba(0,0,0,0)")
-					.attr("fill-opacity", "0.0");
-				return;
-			}
-			transition
-				.attr("stroke", newColor);
-		},
-		on: function(event, listener) {
-			circle.on(event, listener);
-		},
-		disperse: function() {
-			var deferred = Q.defer();
-			circle
-				.transition()
-				.duration(parent.styles.animation.inSpeed)
-				.attr("opacity", 0)
-				.attr("r", 0)
-				.each("end", deferred.resolve, circle);
-			return deferred.promise;
-		}
-	};
-};
-
-
-HEXAGRAM.CircleRing = function (canvas, config) {
-	var RAD = Math.PI * 2;
-	var offset = 0;
-	var ring = canvas
-		.append("g")
-		.attr("opacity", 1);
-	var circles = [];
-	for (var i = 0; i < config.count; ++ i) {
-		var completeness = i / config.count;
-		var q = 1;
-		var circle = ring.append("circle");
-		circle
-			.attr("r", 0)
-			.attr("cx", config.width / 2 + (Math.cos((offset + completeness) * RAD)) * q * config.radius)
-			.attr("cy", config.height / 2 + (Math.sin((offset + completeness) * RAD)) * q * config.radius)
-			.attr("stroke", config.parent.styles.colors.smallRing)
-			.attr("fill", "none")
-			.attr("stroke-width", 0.5 + config.innerRadius / 15);
-		var transition = circle.transition()
-			.duration(config.parent.styles.animation.inSpeed)
-			.attr("r", config.innerRadius)
-			.each("end", function() {
-			  circle.t = undefined;
-			});
-		circle.t = transition;
-		circles.push(circle);
-	}
-
-	var animation = function () {
-		offset = (config.reverse) ? offset - 1 * (config.speed || config.parent.styles.animation.animationSpeed) : offset + 1 * (config.speed || config.parent.styles.animation.animationSpeed);
-		ring
-			.transition()
-			.ease("linear")
-			.duration(100)
-			.attr("transform", "rotate(" + offset + ", " + config.width / 2 + ", " + config.height / 2 + ")");
-	};
-	config.parent.animation.add(animation);
-
-	return {
-		ref: ring,
-		recolor: function(newColor) {
-			_.each(circles, function(circle) {
-				circle
-					.attr("stroke", newColor);
-			});
-		},
-		fill: function(newColor) {
-			_.each(circles, function(circle) {
-				circle
-					.attr("fill", newColor);
-			});
-		},
-		disperse: function() {
-			var deferred = Q.defer();
-			config.parent.animation.remove(animation);
-			_.each(circles, function(circle) {
-				circle.transition()
-					.duration(500)
-					.attr("r", 0);
-			});
-			var transition = ring.transition();
-			transition
-				.duration(config.parent.styles.animation.inSpeed)
-				.attr("opacity", 0)
-				.each("end", deferred.resolve, ring);
-			return deferred.promise;
-		}
-	};
-};
-
+var MagicCircle = HEXAGRAM.MagicCircle;;var HEXAGRAM = HEXAGRAM || {};
 
 HEXAGRAM.TextRing = function (canvas, config) {
 	var parent = config.parent;
