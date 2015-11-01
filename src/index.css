@@ -1,0 +1,56 @@
+ .container {
+    margin: auto;
+    max-width: 670px;
+    background-color: white;
+    padding: 20px;
+    padding-top:10px;
+    border-radius: 5px;
+    margin-top: -25px;
+}
+.spellDisplay {
+width: 24%;
+float: left;
+padding: 1rem;
+font-size: 10px;
+text-transform: uppercase;
+}
+.spellDisplay input {
+    width: 49%;
+    float: right;
+}
+.casting-container {
+/*    width: 1000px;*/
+    position: relative;
+    /*margin-left: -190px;*/
+    background-color: white;
+    z-index: 10;
+    /*padding: 2rem;*/
+    /*border-radius: 15px;*/
+}
+.spellPropertyDisplay {
+    height: 30px;
+}
+#magic {
+    height: 500px;
+    width: 500px;
+}
+html {
+    font-family:"Helvetica";
+    font-size: 1.0rem;
+    line-height: 1.8rem;
+}
+body {
+    padding: 1rem;
+}
+@-webkit-keyframes jewelbox {
+    0% {
+        -webkit-transform: rotateY(0deg) rotateX(0deg);
+    }
+    100% {
+        -webkit-transform: rotateY(359deg) rotateX(359deg);
+    }
+}
+#circle2 {
+    width: 250px;
+    height: 250px;
+}

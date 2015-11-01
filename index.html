@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title="Magic Circles"></title>
+		<link rel="stylesheet" type="text/css" href="src/index.css">
+	</head>
+
+	<body>
+		<div id='magic'>
+		</div>
+	</body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
+	<script src='../build/hexagram.js'></script>
+	<script>
+$(function () {
+	var magic = new HEXAGRAM.MagicCircle("#magic");
+	magic
+		.circleRing(12,16)
+		.ring(5)
+		.ring(0)
+		.ring()
+		.text("autofit","Wow! Amaze! Such circle!")
+		.ring()
+		.circleRing(48,12,2,true)
+		.ring()
+		.text("autofit","Magic Circles by Azureda",1)
+		.ring()
+		.circleRing(48,4,2)
+		.ring(5)
+		.ring()
+		.text("autofit","Make your own today! The astonishing circle framework by international technology innovators Azureda and Friends!",1)
+		.add(new HEXAGRAM.Ring(magic.canvas, {
+			parent: magic,
+			radius: magic.currentRadius,
+			strokeWidth: magic.strokeWidth || 1
+		}))
+		.run();
+});
+	</script>
+</html>

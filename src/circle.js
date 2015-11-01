@@ -1,6 +1,6 @@
 var HEXAGRAM = HEXAGRAM || {};
 
-HEXAGRAM.Circle = function (canvas, config) {
+HEXAGRAM.Ring = function (canvas, config) {
 	var parent = config.parent;
 	var circle = canvas.append("circle");
 	circle
@@ -22,6 +22,9 @@ HEXAGRAM.Circle = function (canvas, config) {
 		.each("end", function() {
 			transition = null;
 		});
+	if (config.strokeWidth) {
+		parent.currentRadius += config.strokeWidth;
+	}
 	return {
 		ref: circle,
 		recolor: function(newColor) {

@@ -39,7 +39,7 @@ HEXAGRAM.Animation.prototype.remove = function (callback) {
 };
 ;var HEXAGRAM = HEXAGRAM || {};
 
-HEXAGRAM.Circle = function (canvas, config) {
+HEXAGRAM.Ring = function (canvas, config) {
 	var parent = config.parent;
 	var circle = canvas.append("circle");
 	circle
@@ -61,6 +61,9 @@ HEXAGRAM.Circle = function (canvas, config) {
 		.each("end", function() {
 			transition = null;
 		});
+	if (config.strokeWidth) {
+		parent.currentRadius += config.strokeWidth;
+	}
 	return {
 		ref: circle,
 		recolor: function(newColor) {
@@ -173,6 +176,7 @@ HEXAGRAM.MagicCircle = function (selector, config) {
 	this.elements = [];
 	this.current = undefined;
 	this.currentRadius = 0;
+	this.init();
 };
 
 HEXAGRAM.MagicCircle.DefaultConfig = {
@@ -200,15 +204,8 @@ HEXAGRAM.MagicCircle.DefaultConfig = {
 	}
 };
 
-HEXAGRAM.MagicCircle.prototype.cast = function (rad) {
-	var that = this;
-	if (! this.animation || "running" != this.animation.status) {
-		this.animation.run();
-	}
-	if (! this.canvas) {
-		this.init();
-	}
-	return that;
+HEXAGRAM.MagicCircle.prototype.cast = function () {
+	return this.run();
 };
 
 HEXAGRAM.MagicCircle.prototype.init = function () {
@@ -266,11 +263,15 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 };
 
 HEXAGRAM.MagicCircle.prototype.run = function () {
+	if (! this.animation || "running" != this.animation.status) {
+		this.animation.run();
+	}
+	return this;
 };
 
 HEXAGRAM.MagicCircle.prototype.add = function (type, config) {
 	switch (type) {
-	case "Circle":
+	case "Ring":
 		return this.addCircle(config);
 		break;
 	case "CircleRing":
@@ -279,12 +280,17 @@ HEXAGRAM.MagicCircle.prototype.add = function (type, config) {
 	case "Text":
 		return this.addText(config);
 		break;
+	default:
+		this.elements.push(type);
+		this.current = type;
+		break;
 	}
+	return this;
 };
 
 HEXAGRAM.MagicCircle.prototype.addCircle = function (config) {
 	var that = this;
-	var circle = new HEXAGRAM.Circle(that.canvas, {
+	var circle = new HEXAGRAM.Ring(that.canvas, {
 		parent: that,
 		radius: that.currentRadius,
 		strokeWidth: config.strokeWidth || 1
@@ -293,9 +299,6 @@ HEXAGRAM.MagicCircle.prototype.addCircle = function (config) {
 		this.space(config.spaceBefore);
 	}
 	that.elements.push(circle);
-	if (config.strokeWidth) {
-		that.currentRadius += config.strokeWidth;
-	}
 	this.current = circle;
 	if (config.spaceAfter) {
 		this.space(config.spaceAfter);
@@ -436,7 +439,7 @@ HEXAGRAM.MagicCircle.prototype.circleRing = function(count, innerRadius, speed, 
 },
 
 HEXAGRAM.MagicCircle.prototype.ring = function(strokeWidth, spaceBefore, spaceAfter) {
-	this.add("Circle", {
+	this.add("Ring", {
 		strokeWidth: strokeWidth,
 		spaceBefore: spaceBefore,
 		spaceAfter: spaceAfter
