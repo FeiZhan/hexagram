@@ -2,162 +2,135 @@
 <html>
 	<head>
 		<title="Magic Circles"></title>
-		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.css">
-		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/styles/github.min.css">
-		<link rel="stylesheet" type="text/css" href="styles/circles.css">
+		<link rel="stylesheet" type="text/css" href="../src/index.css">
 	</head>
 
 	<body>
-		<wrapper>
-			<div class="header">
-				<div id='logo-main'>
-					<a href="#home">
-						<div class='banner'>Magic Circles</div>
-					</a>
-				</div>
-				<div id='menu'>
-					<div class='banner'>Menu</div>
-				</div>
-			</div>
-		</wrapper>
+		<artboard id='menu'>
+		</artboard>
 	</body>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.0/highlight.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.js"></script>
-
-	<script src='../src/lol.js'></script>
-	<script src='../src/hexagram.js'></script>
+	<script src='../build/hexagram.js'></script>
 	<script>
-var logo = new MagicCircle("#logo-main");
-logo.cast()
-    .ring(35)
-    .color("#1e3a5a")
-    .backspace(35)
-    .circleRing(16, 8)
-    .color("white")
-    .ring(2)
-    .color("#565656")
-    .circleRing(16, 10)
-    .color("white")
-    .ring(3)
-    .color("#565656")
+$(function () {
+	var menu = new MagicCircle("#menu");
 
-var menu = new MagicCircle("#menu");
+	function showMenuButton() {
+	    menu.cast()
+	        .ring(25)
+	        .color("#1e3a5a")
+	        .backspace(35)
+	        .circleRing(15, 10)
+	        .color("white")
+	        .ring(2)
+	        .color("#565656")
+	        .circleRing(8, 5)
+	        .color("white")
+	        .ring(2)
+	        .color("#565656")
+	}
 
-function showMenuButton() {
-    menu.cast()
-        .ring(25)
-        .color("#1e3a5a")
-        .backspace(35)
-        .circleRing(15, 10)
-        .color("white")
-        .ring(2)
-        .color("#565656")
-        .circleRing(8, 5)
-        .color("white")
-        .ring(2)
-        .color("#565656")
-}
+	var canshowmenu = true;
 
-var canshowmenu = true;
-
-function forceMenuHide() {
-    menu.disperse();
-    showMenuButton();
-    canshowmenu = false;
-    window.scrollTo(0, 0);
+	function forceMenuHide() {
+	    menu.disperse();
+	    showMenuButton();
+	    canshowmenu = false;
+	    window.scrollTo(0, 0);
 
 
-    $('#menu').css("pointer-events", "none");
-    setTimeout(function() {
-        canshowmenu = true;
-        $('#menu').css("pointer-events", "auto");
-    }, 1500)
-}
+	    $('#menu').css("pointer-events", "none");
+	    setTimeout(function() {
+	        canshowmenu = true;
+	        $('#menu').css("pointer-events", "auto");
+	    }, 1500)
+	}
 
 
-var options = [{
-    name: "Casting",
-    link: "casting",
-    color: "#737373"
-}, {
-    name: "Styling",
-    link: "styling",
-    color: "#5e5e5e"
-}, {
-    name: "Layering",
-    link: "fillStroke",
-    color: "#24466d"
-}, {
-    name: "Patterns",
-    link: "repeating",
-    color: "#1a324d"
-}, {
-    name: "Interactivity",
-    link: "interactivity",
-    color: "#0f1d2d"
-},
-//  {
-//     name: "Gallery",
-//     link: "gallery",
-//     color: "#05080d"
-// },
-{
-    name: "Check it out on Github",
-    href: "https://github.com/danielstern/MagicCircles",
-    color: "#05080d"
-}]
+	var options = [
+	{
+	    name: "Casting",
+	    link: "casting",
+	    color: "#737373"
+	}, {
+	    name: "Styling",
+	    link: "styling",
+	    color: "#5e5e5e"
+	}, {
+	    name: "Layering",
+	    link: "fillStroke",
+	    color: "#24466d"
+	}, {
+	    name: "Patterns",
+	    link: "repeating",
+	    color: "#1a324d"
+	}, {
+	    name: "Interactivity",
+	    link: "interactivity",
+	    color: "#0f1d2d"
+	},
+	//  {
+	//     name: "Gallery",
+	//     link: "gallery",
+	//     color: "#05080d"
+	// },
+	{
+	    name: "Check it out on Github",
+	    href: "https://github.com/danielstern/MagicCircles",
+	    color: "#05080d"
+	}
+	];
 
-    function showMenu() {
-        menu.cast()
-            .circleRing(32, 25, 3)
-        _.each(options, function(option) {
-            // console.log('casting option');
+	    function showMenu() {
+	        menu.cast()
+	            .circleRing(32, 25, 3)
+	        $.each(options, function(option) {
+	            // console.log('casting option');
 
-            menu.cast()
-                .ring(16)
-                .color(option.color)
-                .backspace(16);
-            var text = menu.cast()
-                .text(16, option.name, 1)
-                .color('white')
-                .getLast();
-            menu.cast()
-                .backspace(16)
-                .ring(16)
-                .color('useNone')
-                .on('click', function(a) {
-                    // console.log("clicked the ring");
-                    if (option.link) {
-                        window.location.hash = option.link;
-                    } else if (option.href) {
-                        window.location = option.href;
-                    }
-                    forceMenuHide();
-                })
-                .on('mouseover', function(e) {
-                    text.rotation(-25);
-                })
-                .on('mouseout', function(e) {
-                    text.animate();
-                })
-            // .backspace(16)
-        })
-    }
+	            menu.cast()
+	                .ring(16)
+	                .color(option.color)
+	                .backspace(16);
+	            var text = menu.cast()
+	                .text(16, option.name, 1)
+	                .color('white')
+	                .getLast();
+	            menu.cast()
+	                .backspace(16)
+	                .ring(16)
+	                .color('useNone')
+	                .on('click', function(a) {
+	                    // console.log("clicked the ring");
+	                    if (option.link) {
+	                        window.location.hash = option.link;
+	                    } else if (option.href) {
+	                        window.location = option.href;
+	                    }
+	                    forceMenuHide();
+	                })
+	                .on('mouseover', function(e) {
+	                    text.rotation(-25);
+	                })
+	                .on('mouseout', function(e) {
+	                    text.animate();
+	                })
+	            // .backspace(16)
+	        })
+	    }
 
-$('#menu').on("mouseenter", function(e) {
-    menu.disperse();
-    showMenu();
-})
+	$('#menu').on("mouseenter", function(e) {
+	    menu.disperse();
+	    showMenu();
+	})
 
-$('#menu').on("mouseleave", function(e) {
-    menu.disperse();
-    showMenuButton();
-})
-showMenuButton();
+	$('#menu').on("mouseleave", function(e) {
+	    menu.disperse();
+	    showMenuButton();
+	})
+	showMenuButton();
+});
 	</script>
 </html>

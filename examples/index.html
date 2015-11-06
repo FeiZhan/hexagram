@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Magic Circles</title>
+		<link rel="stylesheet" type="text/css" href="../src/index.css">
+	</head>
+
+	<body>
+		<artboard id='logo'>
+		</artboard>
+		<artboard id='menu'>
+		</artboard>
+		<artboard id='headerCircle'>
+		</artboard>
+		<artboard id='fillstroke'>
+	    </artboard>
+		<artboard id='fillstroke2'>
+		</artboard>
+		<artboard class='full' id='interactivity'>
+		</artboard>
+	</body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
+	<script src='../build/hexagram.js'></script>
+	<script>
+$(function () {
+	var logo = new MagicCircle("#logo");
+	logo.cast()
+	    .ring(35)
+	    .color("#1e3a5a")
+	    .backspace(35)
+	    .circleRing(16, 8)
+	    .color("white")
+	    .ring(2)
+	    .color("#565656")
+	    .circleRing(16, 10)
+	    .color("white")
+	    .ring(3)
+	    .color("#565656")
+
+	var menu = new MagicCircle("#menu");
+
+	function showMenuButton() {
+	    menu.cast()
+	        .ring(25)
+	        .color("#1e3a5a")
+	        .backspace(35)
+	        .circleRing(15, 10)
+	        .color("white")
+	        .ring(2)
+	        .color("#565656")
+	        .circleRing(8, 5)
+	        .color("white")
+	        .ring(2)
+	        .color("#565656")
+	}
+
+	var canshowmenu = true;
+
+	function forceMenuHide() {
+	    menu.disperse();
+	    showMenuButton();
+	    canshowmenu = false;
+	    window.scrollTo(0, 0);
+
+
+	    $('#menu').css("pointer-events", "none");
+	    setTimeout(function() {
+	        canshowmenu = true;
+	        $('#menu').css("pointer-events", "auto");
+	    }, 1500)
+	}
+
+
+	var options = [
+	{
+	    name: "Casting",
+	    link: "casting",
+	    color: "#737373"
+	}, {
+	    name: "Styling",
+	    link: "styling",
+	    color: "#5e5e5e"
+	}, {
+	    name: "Layering",
+	    link: "fillStroke",
+	    color: "#24466d"
+	}, {
+	    name: "Patterns",
+	    link: "repeating",
+	    color: "#1a324d"
+	}, {
+	    name: "Interactivity",
+	    link: "interactivity",
+	    color: "#0f1d2d"
+	},
+	//  {
+	//     name: "Gallery",
+	//     link: "gallery",
+	//     color: "#05080d"
+	// },
+	{
+	    name: "Check it out on Github",
+	    href: "https://github.com/danielstern/MagicCircles",
+	    color: "#05080d"
+	}
+	];
+
+	    function showMenu() {
+	        menu.cast()
+	            .circleRing(32, 25, 3)
+	        $.each(options, function(option) {
+	            // console.log('casting option');
+
+	            menu.cast()
+	                .ring(16)
+	                .color(option.color)
+	                .backspace(16);
+	            var text = menu.cast()
+	                .text(16, option.name, 1)
+	                .color('white')
+	                .getLast();
+	            menu.cast()
+	                .backspace(16)
+	                .ring(16)
+	                .color('useNone')
+	                .on('click', function(a) {
+	                    // console.log("clicked the ring");
+	                    if (option.link) {
+	                        window.location.hash = option.link;
+	                    } else if (option.href) {
+	                        window.location = option.href;
+	                    }
+	                    forceMenuHide();
+	                })
+	                .on('mouseover', function(e) {
+	                    text.rotation(-25);
+	                })
+	                .on('mouseout', function(e) {
+	                    text.animate();
+	                })
+	            // .backspace(16)
+	        })
+	    }
+
+	$('#menu').on("mouseenter", function(e) {
+	    menu.disperse();
+	    showMenu();
+	})
+
+	$('#menu').on("mouseleave", function(e) {
+	    menu.disperse();
+	    showMenuButton();
+	})
+	showMenuButton();
+
+
+	var intro = new MagicCircle("#headerCircle");
+    intro.styles.colors = {
+      ring: "#151d3b",
+      text: "#1a1640",
+      smallRing: "#291744",
+    };
+
+    var caster = intro.cast()
+        .circleRing(12,16)
+        .ring(5)
+        .ring(0)
+        .ring()
+        .text("autofit","Wow! Amaze! Such circle!")
+        .ring()
+        .circleRing(48,12,2,true)
+        .ring()
+        .text("autofit","Magic Circles by Azureda",1)
+        .ring()
+        .circleRing(48,4,2)
+        .ring(5)
+        .ring()
+        .text("autofit","Make your own today! The astonishing circle framework by international technology innovators Azureda and Friends!",1)
+        .ring()
+
+
+	var magic = new MagicCircle("#fillstroke", 3);
+	magic.cast()
+	  .space(50)
+	  .ring(25)
+	  .color("#ad44a2")
+	  .backspace(20)
+	  .text(15, "DISCO PARTY", 4)
+	  .color("white")
+	  .space(5)
+	  .ring(25)
+	  .color('#b98a44')
+	  .backspace(20)
+	  .text(15, "RETRO SCENESTER", 3, true)
+	  .color("white")
+	  .space(5)
+	  .ring(25)
+	  .color('#49c055')
+	  .backspace(20)
+	  .text(15, "AZUREDA PROUDLY PRESENTS", 2)
+	  .color("white")
+	  .space(5)
+
+	var magic2 = new MagicCircle("#fillstroke2", 3);
+	magic2.cast()
+	  .space(50)
+	  .ring(25)
+	  .color('blue')
+	  .ring(25)
+	  .color('white')
+	  .backspace(20)
+	  .text(15, "SAILORS ENTHUSIAST MEETUP GROUP", 1, true)
+	  .color("blue")
+	  .space(5)
+	  .ring(40)
+	  .color('blue')
+	  .backspace(42)
+	  .circleRing(8, 30, 2)
+	  .fill("white")
+	  .color("white")
+
+
+
+	  var interact = new MagicCircle("#interactivity");
+	  var caster = interact.cast();
+	  var innerCircleRing = caster
+	    .circleRing(24,26)
+	  	.color('rgba(0,0,0,0)')
+	  	.getLast();
+	  caster
+	    .ring(1);
+
+	  var text = interact.cast()
+	    .text(25, "Hover over me!")
+	    .getLast();
+
+	  caster.backspace(25)
+	    .ring(25)
+	    .color("useNone")
+	    .on("mouseover", rotateText)
+	    .on("mouseout", resumeAnimation)
+
+	  function rotateText() {
+	    text.rotation(-35);
+	    innerCircleRing.recolor('green');
+	  }
+
+	  function resumeAnimation() {
+	    text.animate();
+	    innerCircleRing.recolor('none');
+	  }
+
+	  function toggleCircles() {
+	    text2.rotation(-35);
+	    circles.fill("red")
+	  }
+
+	  function untoggleCircles() {
+	    text2.animate();
+	    circles.fill("blue");
+	  }
+
+	  caster.ring(12)
+	  var text2 = interact.cast()
+	    .text(25, "CLICK ME")
+	    .getLast();
+
+	  caster.backspace(25)
+	    .ring(25)
+	    .color("useNone")
+	    .on("click", toggleCircles)
+	    .on("mouseout", untoggleCircles)
+
+	  var circles =
+	    caster.ring(1)
+	    .circleRing(24, 8)
+	  	.fill('blue')
+	    .getLast();
+
+	  caster.ring()
+});
+	</script>
+</html>

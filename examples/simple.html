@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title="Magic Circles"></title>
-		<link rel="stylesheet" type="text/css" href="../lib/MagicCircles/examples/styles/circles.css">
+		<link rel="stylesheet" type="text/css" href="../src/index.css">
 	</head>
 
 	<body>
@@ -13,18 +13,17 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
-
-	<script src='../build/hexagram.min.js'></script>
+	<script src='../build/hexagram.js'></script>
 	<script>
-    var intro = new HEXAGRAM.
-		MagicCircle("#headerCircle");
+$(function () {
+	var intro = new MagicCircle("#headerCircle");
     intro.styles.colors = {
       ring: "#151d3b",
       text: "#1a1640",
       smallRing: "#291744",
     };
 
-    var caster = intro.run()
+    var caster = intro.cast()
         .circleRing(12,16)
         .ring(5)
         .ring(0)
@@ -39,7 +38,7 @@
         .ring(5)
         .ring()
         .text("autofit","Make your own today! The astonishing circle framework by international technology innovators Azureda and Friends!",1)
-        .ring();
-
+        .ring()
+});
 	</script>
 </html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title="Magic Circles"></title>
+		<link rel="stylesheet" type="text/css" href="../src/index.css">
+	</head>
+
+	<body>
+		<artboard class='full' id='interactivity'>
+		</artboard>
+	</body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
+	<script src='../build/hexagram.js'></script>
+	<script>
+$(function () {
+	  var interact = new MagicCircle("#interactivity");
+	  var caster = interact.cast();
+	  var innerCircleRing = caster
+	    .circleRing(24,26)
+	  	.color('rgba(0,0,0,0)')
+	  	.getLast();
+	  caster
+	    .ring(1);
+
+	  var text = interact.cast()
+	    .text(25, "Hover over me!")
+	    .getLast();
+
+	  caster.backspace(25)
+	    .ring(25)
+	    .color("useNone")
+	    .on("mouseover", rotateText)
+	    .on("mouseout", resumeAnimation)
+
+	  function rotateText() {
+	    text.rotation(-35);
+	    innerCircleRing.recolor('green');
+	  }
+
+	  function resumeAnimation() {
+	    text.animate();
+	    innerCircleRing.recolor('none');
+	  }
+
+	  function toggleCircles() {
+	    text2.rotation(-35);
+	    circles.fill("red")
+	  }
+
+	  function untoggleCircles() {
+	    text2.animate();
+	    circles.fill("blue");
+	  }
+
+	  caster.ring(12)
+	  var text2 = interact.cast()
+	    .text(25, "CLICK ME")
+	    .getLast();
+
+	  caster.backspace(25)
+	    .ring(25)
+	    .color("useNone")
+	    .on("click", toggleCircles)
+	    .on("mouseout", untoggleCircles)
+
+	  var circles =
+	    caster.ring(1)
+	    .circleRing(24, 8)
+	  	.fill('blue')
+	    .getLast();
+
+	  caster.ring()
+});
+	</script>
+</html>

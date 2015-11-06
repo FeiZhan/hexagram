@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title="Magic Circles"></title>
+		<link rel="stylesheet" type="text/css" href="../src/index.css">
+	</head>
+
+	<body>
+		<artboard id='logo'>
+		</artboard>
+	</body>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.8/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.7/q.js"></script>
+	<script src='../build/hexagram.js'></script>
+	<script>
+$(function () {
+	var logo = new MagicCircle("#logo");
+	logo.cast()
+	    .ring(35)
+	    .color("#1e3a5a")
+	    .backspace(35)
+	    .circleRing(16, 8)
+	    .color("white")
+	    .ring(2)
+	    .color("#565656")
+	    .circleRing(16, 10)
+	    .color("white")
+	    .ring(3)
+	    .color("#565656");
+});
+	</script>
+</html>

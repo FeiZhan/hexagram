@@ -5,14 +5,14 @@ HEXAGRAM.CircleRing = function (config) {
 	this.parent = config.parent;
 	var RAD = Math.PI * 2;
 	var offset = 0;
-	var ring = this.parent.canvas
+	this.ring = this.parent.canvas
 		.append("g")
 		.attr("opacity", 1);
 	this.circles = [];
 	for (var i = 0; i < config.count; ++ i) {
 		var completeness = i / config.count;
 		var q = 1;
-		var circle = ring.append("circle");
+		var circle = this.ring.append("circle");
 		circle
 			.attr("r", 0)
 			.attr("cx", config.width / 2 + (Math.cos((offset + completeness) * RAD)) * q * config.radius)
@@ -30,15 +30,15 @@ HEXAGRAM.CircleRing = function (config) {
 		this.circles.push(circle);
 	}
 
-	var animation = function () {
+	this.animation = function () {
 		offset = (config.reverse) ? offset - 1 * (config.speed || that.parent.styles.animation.animationSpeed) : offset + 1 * (config.speed || that.parent.styles.animation.animationSpeed);
-		ring
+		that.ring
 			.transition()
 			.ease("linear")
 			.duration(100)
 			.attr("transform", "rotate(" + offset + ", " + config.width / 2 + ", " + config.height / 2 + ")");
 	};
-	this.parent.animation.add(animation);
+	this.parent.animation.add(this.animation);
 
 	return this;
 };
@@ -59,16 +59,16 @@ HEXAGRAM.CircleRing.prototype.fill = function (newColor) {
 
 HEXAGRAM.CircleRing.prototype.disperse = function () {
 	var deferred = Q.defer();
-	this.parent.animation.remove(animation);
+	this.parent.animation.remove(this.animation);
 	$.each(this.circles, function(i, circle) {
 		circle.transition()
 			.duration(500)
 			.attr("r", 0);
 	});
-	var transition = ring.transition();
+	var transition = this.ring.transition();
 	transition
 		.duration(this.parent.styles.animation.inSpeed)
 		.attr("opacity", 0)
-		.each("end", deferred.resolve, ring);
+		.each("end", deferred.resolve, this.ring);
 	return deferred.promise;
 };
