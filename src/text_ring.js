@@ -76,6 +76,7 @@ HEXAGRAM.TextRing.prototype.recolor = function (newColor) {
 	this.transition
 		.attr("fill", newColor);
 };
+
 HEXAGRAM.TextRing.prototype.disperse = function() {
 	var that = this;
 	var deferred = Q.defer();

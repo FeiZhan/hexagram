@@ -35,7 +35,7 @@ HEXAGRAM.MagicCircle.DefaultConfig = {
 			level: 0
 		},
 		shadow: {
-			level: 1,
+			level: 10,
 			distance: 0
 		}
 	}
@@ -77,9 +77,12 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 
 	var shadowFilter = this.defs.append("filter")
 		.attr("id", "drop-shadow" + this.id)
-		.attr("height", "130%");
+		.attr("x", "-200%")
+		.attr("y", "-200%")
+		.attr("height", "500%")
+		.attr("width", "500%");
 	shadowFilter.append("feGaussianBlur")
-		.attr("in", "SourceAlpha")
+		.attr("in", "offOut")
 		.attr("stdDeviation", this.styles.graphics.shadow.level)
 		.attr("result", "blur");
 	shadowFilter.append("feOffset")
@@ -87,6 +90,11 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 		.attr("dx", this.styles.graphics.shadow.distance)
 		.attr("dy", this.styles.graphics.shadow.distance)
 		.attr("result", "offsetBlur");
+	//<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+	shadowFilter.append("feBlend")
+		.attr("in", "SourceGraphic")
+		.attr("in2", "blurOut")
+		.attr("mode", "normal");
 	shadowFilter.append("feComponentTransfer")
 		.append("feFuncA")
 		.attr("type", "linear")
@@ -109,17 +117,28 @@ HEXAGRAM.MagicCircle.prototype.run = function () {
 };
 
 HEXAGRAM.MagicCircle.prototype.add = function (type, config) {
+	config = config || {};
 	switch (type) {
-	case "Space":
+	case "space":
 		this.space(config.length);
 		break;
-	case "Ring":
-		this.addRing(config);
+	case "ring":
+		this.ring(config.strokeWidth);
 		break;
-	case "CircleRing":
+	case "rect":
+		var rect = new HEXAGRAM.Rectangle({
+			parent: this,
+			radius: this.currentRadius,
+			stroke: "red",
+			strokeWidth: config.strokeWidth || 1
+		});
+		this.elements.push(rect);
+		this.current = rect;
+		break;
+	case "circle_ring":
 		this.addCircleRing(config);
 		break;
-	case "Text":
+	case "text":
 		this.addText(config);
 		break;
 	default:
@@ -195,6 +214,7 @@ HEXAGRAM.MagicCircle.prototype.ring = function(strokeWidth) {
 	var circle = new HEXAGRAM.Ring({
 		parent: that,
 		radius: that.currentRadius,
+		stroke: "red",
 		strokeWidth: strokeWidth || 1
 	});
 	that.elements.push(circle);

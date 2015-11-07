@@ -1,14 +1,13 @@
 var HEXAGRAM = HEXAGRAM || {};
 
-HEXAGRAM.Ring = function (config) {
+HEXAGRAM.Rectangle = function (config) {
 	var that = this;
 	this.config = config || {};
 	this.parent = config.parent;
-	this.circle = this.parent.canvas.append("circle");
+	this.circle = this.parent.canvas.append("rect");
 	this.circle
-		.attr("r", 0)
-		.attr("cx", this.parent.width / 2)
-		.attr("cy", this.parent.height / 2)
+		.attr("width", config.radius + config.strokeWidth / 2)
+		.attr("height", config.radius + config.strokeWidth / 2)
 		.attr("opacity", 1)
 		.attr("stroke", config.stroke || this.parent.styles.colors.ring)
 		.attr("fill", config.fill || "none")
@@ -16,7 +15,6 @@ HEXAGRAM.Ring = function (config) {
 		.attr("stroke-width", config.strokeWidth || config.radius / 100);
 	this.transition = this.circle.transition()
 		.duration(this.parent.styles.animation.inSpeed)
-		.attr("r", config.radius + config.strokeWidth / 2)
 		.each("end", function() {
 			that.transition = null;
 		});
@@ -26,7 +24,7 @@ HEXAGRAM.Ring = function (config) {
 	return this;
 };
 
-HEXAGRAM.Ring.prototype.recolor = function (newColor) {
+HEXAGRAM.Rectangle.prototype.recolor = function (newColor) {
 	this.transition = this.transition || this.circle.transition();
 	if (newColor == "useNone") {
 		this.transition
@@ -38,11 +36,11 @@ HEXAGRAM.Ring.prototype.recolor = function (newColor) {
 		.attr("stroke", newColor);
 };
 
-HEXAGRAM.Ring.prototype.on = function(event, listener) {
+HEXAGRAM.Rectangle.prototype.on = function(event, listener) {
 	this.circle.on(event, listener);
 };
 
-HEXAGRAM.Ring.prototype.disperse = function() {
+HEXAGRAM.Rectangle.prototype.disperse = function() {
 	var deferred = Q.defer();
 	this.circle
 		.transition()

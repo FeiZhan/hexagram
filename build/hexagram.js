@@ -148,7 +148,7 @@ HEXAGRAM.MagicCircle.DefaultConfig = {
 			level: 0
 		},
 		shadow: {
-			level: 1,
+			level: 10,
 			distance: 0
 		}
 	}
@@ -190,9 +190,12 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 
 	var shadowFilter = this.defs.append("filter")
 		.attr("id", "drop-shadow" + this.id)
-		.attr("height", "130%");
+		.attr("x", "-200%")
+		.attr("y", "-200%")
+		.attr("height", "500%")
+		.attr("width", "500%");
 	shadowFilter.append("feGaussianBlur")
-		.attr("in", "SourceAlpha")
+		.attr("in", "offOut")
 		.attr("stdDeviation", this.styles.graphics.shadow.level)
 		.attr("result", "blur");
 	shadowFilter.append("feOffset")
@@ -200,6 +203,11 @@ HEXAGRAM.MagicCircle.prototype.init = function () {
 		.attr("dx", this.styles.graphics.shadow.distance)
 		.attr("dy", this.styles.graphics.shadow.distance)
 		.attr("result", "offsetBlur");
+	//<feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+	shadowFilter.append("feBlend")
+		.attr("in", "SourceGraphic")
+		.attr("in2", "blurOut")
+		.attr("mode", "normal");
 	shadowFilter.append("feComponentTransfer")
 		.append("feFuncA")
 		.attr("type", "linear")
@@ -222,17 +230,28 @@ HEXAGRAM.MagicCircle.prototype.run = function () {
 };
 
 HEXAGRAM.MagicCircle.prototype.add = function (type, config) {
+	config = config || {};
 	switch (type) {
-	case "Space":
+	case "space":
 		this.space(config.length);
 		break;
-	case "Ring":
-		this.addRing(config);
+	case "ring":
+		this.ring(config.strokeWidth);
 		break;
-	case "CircleRing":
+	case "rect":
+		var rect = new HEXAGRAM.Rectangle({
+			parent: this,
+			radius: this.currentRadius,
+			stroke: "red",
+			strokeWidth: config.strokeWidth || 1
+		});
+		this.elements.push(rect);
+		this.current = rect;
+		break;
+	case "circle_ring":
 		this.addCircleRing(config);
 		break;
-	case "Text":
+	case "text":
 		this.addText(config);
 		break;
 	default:
@@ -308,6 +327,7 @@ HEXAGRAM.MagicCircle.prototype.ring = function(strokeWidth) {
 	var circle = new HEXAGRAM.Ring({
 		parent: that,
 		radius: that.currentRadius,
+		stroke: "red",
 		strokeWidth: strokeWidth || 1
 	});
 	that.elements.push(circle);
@@ -387,8 +407,62 @@ HEXAGRAM.MagicCircle.prototype.disperse = function () {
 var MagicCircle = HEXAGRAM.MagicCircle;
 ;var HEXAGRAM = HEXAGRAM || {};
 
+HEXAGRAM.Rectangle = function (config) {
+	var that = this;
+	this.config = config || {};
+	this.parent = config.parent;
+	this.circle = this.parent.canvas.append("rect");
+	this.circle
+		.attr("r", 0)
+		.attr("width", config.radius + config.strokeWidth / 2)
+		.attr("height", config.radius + config.strokeWidth / 2)
+		.attr("opacity", 1)
+		.attr("stroke", config.stroke || this.parent.styles.colors.ring)
+		.attr("fill", config.fill || "none")
+		.style("filter", "url(#drop-shadow" + this.parent.id + ")")
+		.attr("stroke-width", config.strokeWidth || config.radius / 100);
+	this.transition = this.circle.transition()
+		.duration(this.parent.styles.animation.inSpeed)
+		.each("end", function() {
+			that.transition = null;
+		});
+	if (config.strokeWidth) {
+		this.parent.currentRadius += config.strokeWidth;
+	}
+	return this;
+};
+
+HEXAGRAM.Rectangle.prototype.recolor = function (newColor) {
+	this.transition = this.transition || this.circle.transition();
+	if (newColor == "useNone") {
+		this.transition
+			.attr("stroke", "rgba(0,0,0,0)")
+			.attr("fill-opacity", "0.0");
+		return;
+	}
+	this.transition
+		.attr("stroke", newColor);
+};
+
+HEXAGRAM.Rectangle.prototype.on = function(event, listener) {
+	this.circle.on(event, listener);
+};
+
+HEXAGRAM.Rectangle.prototype.disperse = function() {
+	var deferred = Q.defer();
+	this.circle
+		.transition()
+		.duration(this.parent.styles.animation.inSpeed)
+		.attr("opacity", 0)
+		.attr("r", 0)
+		.each("end", deferred.resolve, this.circle);
+	return deferred.promise;
+};
+;var HEXAGRAM = HEXAGRAM || {};
+
 HEXAGRAM.Ring = function (config) {
 	var that = this;
+	this.config = config || {};
 	this.parent = config.parent;
 	this.circle = this.parent.canvas.append("circle");
 	this.circle
@@ -396,14 +470,10 @@ HEXAGRAM.Ring = function (config) {
 		.attr("cx", this.parent.width / 2)
 		.attr("cy", this.parent.height / 2)
 		.attr("opacity", 1)
-		.attr("stroke", this.parent.styles.colors.ring)
-		.attr("fill", "none")
+		.attr("stroke", config.stroke || this.parent.styles.colors.ring)
+		.attr("fill", config.fill || "none")
 		.style("filter", "url(#drop-shadow" + this.parent.id + ")")
 		.attr("stroke-width", config.strokeWidth || config.radius / 100);
-	if (config.strokeWidth > 5) {
-		this.circle
-			.style("filter", "none");
-	}
 	this.transition = this.circle.transition()
 		.duration(this.parent.styles.animation.inSpeed)
 		.attr("r", config.radius + config.strokeWidth / 2)
@@ -520,6 +590,7 @@ HEXAGRAM.TextRing.prototype.recolor = function (newColor) {
 	this.transition
 		.attr("fill", newColor);
 };
+
 HEXAGRAM.TextRing.prototype.disperse = function() {
 	var that = this;
 	var deferred = Q.defer();

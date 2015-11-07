@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title="Magic Circles"></title>
+		<title="A Simple Example for Magic Circles"></title>
 		<link rel="stylesheet" type="text/css" href="../src/index.css">
 	</head>
 
 	<body>
-		<artboard id='headerCircle'>
+		<artboard id='magic'>
 		</artboard>
 	</body>
 
@@ -16,14 +16,14 @@
 	<script src='../build/hexagram.js'></script>
 	<script>
 $(function () {
-	var intro = new MagicCircle("#headerCircle");
+	var intro = new HEXAGRAM.MagicCircle("#magic");
     intro.styles.colors = {
       ring: "#151d3b",
       text: "#1a1640",
       smallRing: "#291744",
     };
 
-    var caster = intro.cast()
+	intro
         .circleRing(12,16)
         .ring(5)
         .ring(0)
@@ -39,6 +39,7 @@ $(function () {
         .ring()
         .text("autofit","Make your own today! The astonishing circle framework by international technology innovators Azureda and Friends!",1)
         .ring()
+		.run();
 });
 	</script>
 </html>
